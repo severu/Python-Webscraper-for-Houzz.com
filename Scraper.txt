@@ -1,0 +1,162 @@
+from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import StaleElementReferenceException
+import tkinter as tk
+import time
+
+
+class Scraper:
+    def __init__(self, master, *args, **kwargs):
+        self.chrome = r"C:\ChromeDriver\chromedriver.exe"                                                                    #chromedriver.exe path
+        #chrome = self.pathstring
+
+        self.master = master
+        self.frame = tk.Frame(self.master)
+        self.master.title("Web Scraper")
+        self.heading = tk.Label(self.frame, text="Web Scraper for Houzz.Com", font=('arial', 15, 'bold')).grid(row = 0, sticky= tk.W)
+        #self.labelpath = tk.Label(self.frame, text="Chrome Driver Path:").grid(row=1, sticky=tk.W)
+        #self.entry = tk.StringVar()
+        #self.entrypath = tk.Entry(self.frame, textvariable = self.entry, width = 25).grid(row=1, sticky = tk.NE)
+        self.var1 = tk.IntVar()
+        self.var2 = tk.IntVar()
+        self.var3 = tk.IntVar()
+        self.var4 = tk.IntVar()
+        self.var5 = tk.IntVar()
+        self.var6 = tk.IntVar()
+
+
+        self.c1 = tk.Checkbutton(self.frame, text="Name of Company", variable = self.var1).grid(row = 1, sticky = tk.W)
+        self.c2 = tk.Checkbutton(self.frame, text="Contact Phone Number", variable = self.var2).grid(row = 2, sticky = tk.W)
+        self.c3 = tk.Checkbutton(self.frame, text="Contact Email", variable = self.var3).grid(row = 3, sticky = tk.W)
+        self.c4 = tk.Checkbutton(self.frame, text="Contact Name", variable = self.var4).grid(row = 4, sticky = tk.W)
+        self.c5 = tk.Checkbutton(self.frame, text="Contact Title", variable = self.var5).grid(row = 5, sticky = tk.W)
+        self.c6 = tk.Checkbutton(self.frame, text="Instagram Username", variable = self.var6).grid(row = 6, sticky = tk.W)
+
+        self.button = tk.Button(self.frame, text="Start Scraper", command = self.startchrome).grid(row= 7,sticky= tk.N)
+        self.frame.pack()
+
+    def checkboxes(self):
+        self.companynames = self.var1.get()
+        self.phonenumbers = self.var2.get()
+        self.emails = self.var3.get()
+        self.contactnames = self.var4.get()
+        self.contacttitles = self.var5.get()
+        self.instagramusernames = self.var6.get()
+
+
+        self.functions = [self.companyname(), self.phonenumber(), self.contactemail(), self.contactname(), self.contacttitle(), self.instagramusername()]
+        #self.v = [self.companynames, self.phonenumbers, self.emails, self.contactnames, self.contacttitles, self.instagramusernames]
+
+        for i in range(0,6):
+            #if self.v[i] == 1:
+            self.functions[i]
+                #print (self.v[i])
+
+
+
+
+    def companyname(self):
+        if self.companynames == 1:
+            self.compname = self.driver.find_element_by_class_name("profile-full-name")
+            print (self.compname.text)
+        else:
+            return
+
+    def phonenumber(self):
+        if self.phonenumbers == 1:
+            try:
+                self.clicktocall = self.driver.find_element_by_link_text("Click to Call")
+                self.clicktocall.click()
+                self.driver.implicitly_wait(15)
+                self.phonenum = self.driver.find_element_by_class_name("pro-contact-text")
+                print (self.phonenum.text)
+            except NoSuchElementException:
+                self.phonenum = self.driver.find_element_by_class_name("pro-contact-text")
+                print (self.phonenum.text)
+        else:
+            return
+
+    def contactemail(self):
+        pass
+
+    def contactname(self):
+        if self.contactnames == 1:
+            self.contname = self.driver.find_element_by_css_selector("div.info-list-label:nth-child(2) > div:nth-child(2)")
+            print (self.contname.text)
+
+        else:
+            return
+
+    def contacttitle(self):
+        if self.contacttitles == 1:
+            #self.cont1 = self.driver.find_element_by_css_selector("div.info-list-label:nth-child(1) > div:nth-child(2)").text
+            #self.cont2 = self.driver.find_element_by_css_selector("div.info-list-label:nth-child(1) > div:nth-child(2) > span:nth-child(2) > a:nth-child(1) > span:nth-child(1)").text
+            #self.conttitle = self.cont1 + " " + self.cont2
+            self.conttitle = self.driver.find_element_by_css_selector("div.info-list-label:nth-child(1)").text
+            print (self.conttitle)
+        else:
+            return
+
+    def instagramusername(self):
+        pass
+
+
+
+    def pagenumber(self):
+        self.pages = self.driver.find_elements_by_class_name('pageNumber')
+        for p in range(0, len(self.pages)):
+            if self.pages[p].is_displayed():
+                self.pages[p].click()
+                self.nextprofile()
+            else: break
+
+    def nextprofile(self):
+        self.userlink = self.driver.find_elements_by_class_name('pro-title')
+
+
+        for x in range(0, len(self.userlink)):
+            self.userlink = self.driver.find_elements_by_class_name('pro-title')
+            #self.userlink = WebDriverWait(self.driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, 'pro-title')))
+            self.driver.execute_script("window.scrollTo(0, 200)")
+            if self.userlink[x].is_displayed():
+                self.userlink[x].click()
+                self.checkboxes()
+                self.driver.execute_script("window.history.go(-1)")
+                self.driver.implicitly_wait(15)
+                #self.driver.refresh()
+            else:
+                self.driver.execute_script("window.history.go(-1)")
+
+        self.pagenumber()
+
+
+    def startchrome(self):
+        #self.pathstring = self.entry.get()
+        self.driver = webdriver.Chrome(self.chrome)
+
+        self.driver.get("https://www.houzz.com/professionals/interior-designer")
+        self.driver.find_element_by_id('proSearchBtn').click()
+        self.nextprofile()
+
+
+
+
+
+
+
+def main():
+    root = tk.Tk()
+    app = Scraper(root)
+    root.geometry("400x250+0+0")
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
+
+
+
+
+
